@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto & Gas Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #334155;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .fee-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .fee-label {
+            color: #94a3b8;
+        }
+
+        .fee-value {
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <div class="card">
+            <h1>🟠 Bitcoin Mempool Fees</h1>
+            <div id="loader">Загрузка...</div>
+            <div id="content" style="display:none;">
+                <div class="fee-item">
+                    <span class="fee-label">🔥 Fastest</span>
+                    <span class="fee-value" id="fastest">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">⏳ Half Hour</span>
+                    <span class="fee-value" id="halfHour">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">🐢 Hour</span>
+                    <span class="fee-value" id="hour">-</span>
+                </div>
+            </div>
+            <div class="status" id="updated"></div>
+        </div>
+    </div>
+
+    <script>
+        async function updateDashboard() {
+            try {
+                // Стучимся в наше API
+                const response = await fetch('api.php');
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    const data = result.data;
+
+                    // Filling with data
+                    document.getElementById('fastest').innerText = data.fastest_fee + ' sat/vB';
+                    document.getElementById('halfHour').innerText = data.half_hour_fee + ' sat/vB';
+                    document.getElementById('hour').innerText = data.hour_fee + ' sat/vB';
+                    document.getElementById('updated').innerText = 'Last update: ' + data.created_at;
+
+                    // Showing content
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки данных:', e);
+                document.getElementById('loader').innerText = 'Ошибка связи с API';
+            }
+        }
+
+        // Run the update at boot
+        updateDashboard();
+        // Update every 30 seconds for interactivity.
+        setInterval(updateDashboard, 30000);
+    </script>
+
+</body>
+
+</html>
