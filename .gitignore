@@ -1,1 +1,4 @@
-.envbackend/cron.log
+.env
+backend/cron.log
+__pycache__/
+.vscode/
