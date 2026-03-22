@@ -24,7 +24,19 @@
 
         .dashboard {
             width: 100%;
-            max-width: 400px;
+            max-width: 800px;
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .card {
+            flex: 1;
+            max-width: 360px;
+        }
+
+        .card {
+            flex: 1;
         }
 
         .card {
@@ -90,25 +102,39 @@
             </div>
             <div class="status" id="updated"></div>
         </div>
+    <div class="card">
+        <h1>⛽ EVM Gas Tracker</h1>
+        <div id="evm-loader">Загрузка...</div>
+        <div id="evm-content" style="display:none;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; color:#94a3b8; padding-bottom:10px;">Сеть</th>
+                        <th style="text-align:right; color:#f85149; padding-bottom:10px;">High</th>
+                        <th style="text-align:right; color:#fbbf24; padding-bottom:10px;">Avg</th>
+                        <th style="text-align:right; color:#3fb950; padding-bottom:10px;">Low</th>
+                    </tr>
+                </thead>
+                <tbody id="evm-table"></tbody>
+            </table>
+        </div>
+        <div class="status" id="evm-updated"></div>
     </div>
 
+    </div>
     <script>
         async function updateDashboard() {
             try {
-                // Стучимся в наше API
                 const response = await fetch('api.php');
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     const data = result.data;
 
-                    // Filling with data
                     document.getElementById('fastest').innerText = data.fastest_fee + ' sat/vB';
                     document.getElementById('halfHour').innerText = data.half_hour_fee + ' sat/vB';
                     document.getElementById('hour').innerText = data.hour_fee + ' sat/vB';
                     document.getElementById('updated').innerText = 'Last update: ' + data.created_at;
-
-                    // Showing content
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                 }
@@ -118,10 +144,40 @@
             }
         }
 
-        // Run the update at boot
         updateDashboard();
-        // Update every 30 seconds for interactivity.
         setInterval(updateDashboard, 30000);
+        async function updateEVM() {
+            try {
+                const response = await fetch('evm_api.php');
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    const tbody = document.getElementById('evm-table');
+                    tbody.innerHTML = '';
+                    result.data.forEach(row => {
+                        const isEth = row.network === 'ethereum';
+                        const opacity = isEth ? '1' : '0.45';
+                        const fontSize = isEth ? '1.05rem' : '0.95rem';
+                        tbody.innerHTML += `
+                            <tr style="opacity:${opacity}; font-size:${fontSize};">
+                                <td style="padding:8px 0; color:#38bdf8; font-weight:bold; text-transform:uppercase;">${row.network}</td>
+                                <td style="text-align:right; color:#f85149;">${row.high}</td>
+                                <td style="text-align:right; color:#fbbf24;">${row.average}</td>
+                                <td style="text-align:right; color:#3fb950;">${row.low}</td>
+                            </tr>`;
+                    });
+                    document.getElementById('evm-updated').innerText = 'Last update: ' + result.data[0].created_at;
+                    document.getElementById('evm-loader').style.display = 'none';
+                    document.getElementById('evm-content').style.display = 'block';
+                }
+            } catch (e) {
+                document.getElementById('evm-loader').innerText = 'Ошибка связи с API';
+            }
+        }
+
+        updateEVM();
+        setInterval(updateEVM, 30000);
+
     </script>
 
 </body>
