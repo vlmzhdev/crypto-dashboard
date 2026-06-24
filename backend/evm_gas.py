@@ -31,11 +31,9 @@ def get_gas(network, rpc_url):
         response.raise_for_status()
         data = response.json()
         
-        # Проверяем, есть ли результат в ответе
         hex_price = data.get('result')
         
         if hex_price is None:
-            # Если результата нет, выводим что прислал сервер для отладки
             error_msg = data.get('error', {}).get('message', 'Unknown RPC error')
             print(f"[DEBUG] {network} RPC error: {error_msg}")
             return None
